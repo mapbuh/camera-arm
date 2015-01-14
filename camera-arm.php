@@ -1,5 +1,4 @@
 #!/usr/bin/php
-
 <?php
 
 require('config.inc.php');
