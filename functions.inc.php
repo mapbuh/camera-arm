@@ -58,13 +58,19 @@ function check_triggers($config) {
 		if ( $res == 0 ) {
 			exec(sprintf('/usr/sbin/arp -an | grep %s | cut -f 4 -d " "', $tval['ip'] ), $mac );
 			if ( !empty( $mac[0] ) and strtolower( $mac[0] ) == strtolower($tval['mac']) ) {
-				printf( "%s (%s) available\n", $tval['ip'], $tval['mac'] );
+				if ( $config['debug'] ) { 
+					printf( "%s (%s) available\n", $tval['ip'], $tval['mac'] );
+				}
 				return 0;
 			} else {
-				printf( "%s (%s) mismatched MAC address (%s)\n", $tval['ip'], $tval['mac'], $mac );
+				if ( $config['debug'] ) {
+					printf( "%s (%s) mismatched MAC address (%s)\n", $tval['ip'], $tval['mac'], $mac );
+				}
 			}
 		} else {
+			if( $config['debug'] ) {
 				printf( "%s (%s) unavailable\n", $tval['ip'], $tval['mac'] );
+			}
 		}
 	}
 	return 1;
@@ -72,10 +78,14 @@ function check_triggers($config) {
 
 function notify_state( $config, $state ) {
 	if ( $state == 1 ) {
-		print "Camera armed\n";
+		if ( $config['debug'] ) {
+			print "Camera armed\n";
+		}
 		mail( $config['email'], '[motion detection] Camera armed', 'Camera armed' );
 	} else {
-		print "Camera disarmed\n";
+		if ( $config['debug'] ) {
+			print "Camera disarmed\n";
+		}
 		mail( $config['email'], '[motion detection] Camera disarmed', 'Camera disarmed' );
 	}
 }
