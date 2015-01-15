@@ -10,7 +10,7 @@ if ( $motion_config->isEnable != $desired_state ) {
 	$motion_config->isEnable = $desired_state;
 	if ( $desired_state && !empty($config['preset']) ) {
 		ptz_goto_preset( $config );
-		sleep(3);
+		sleep(1);
 	}
 	set_motion_detect_config($config, $motion_config);
 	notify_state($config, $desired_state );
