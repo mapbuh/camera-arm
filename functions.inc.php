@@ -51,10 +51,56 @@ function set_motion_detect_config($config,$data) {
 
 }
 
+function ptz_goto_preset($config) {
+	$url = sprintf( '%s://%s:%d/cgi-bin/CGIProxy.fcgi?cmd=ptzGotoPresetPoint&usr=%s&pwd=%s&name=%s', 
+			$config['protocol'], $config['address'], $config['port'], urlencode($config['username']), 
+			urlencode($config['password']), urlencode( $config['preset'] ) );
+
+	$curl = curl_init();
+	curl_setopt( $curl, CURLOPT_URL, $url );
+	curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+	$res_xml = curl_exec( $curl );
+	curl_close( $curl );
+
+	$res = new SimpleXMLElement( $res_xml );
+
+	if ( $res->result != 0 ) {
+		return false;
+	} else {
+		return true;
+	}
+
+}
+
+function ptz_list_presets($config) {
+	$url = sprintf( '%s://%s:%d/cgi-bin/CGIProxy.fcgi?cmd=getPTZPresetPointList&usr=%s&pwd=%s', 
+			$config['protocol'], $config['address'], $config['port'], urlencode($config['username']), 
+			urlencode($config['password']) );
+
+	$curl = curl_init();
+	curl_setopt( $curl, CURLOPT_URL, $url );
+	curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+	$res_xml = curl_exec( $curl );
+	curl_close( $curl );
+
+	$res = new SimpleXMLElement( $res_xml );
+	$data = array();
+	for( $i = 0; $i < $res->cnt; $i++ ) {
+		$data[] = $res->{"point$i"} . '' ;
+	}
+
+	if ( $res->result != 0 ) {
+		return false;
+	} else {
+		return $data;
+	}
+
+}
+
 function check_triggers($config) {
 	$res = '';
 	foreach( $config['triggers'] as $tkey => $tval ) {
-		exec(sprintf('ping -c 1 %s', $tval['ip']), $output, $res);
+		exec(sprintf('ping -c %d %s', $config['ping_count'], $tval['ip']), $output, $res);
 		if ( $res == 0 ) {
 			exec(sprintf('/usr/sbin/arp -an | grep %s | cut -f 4 -d " "', $tval['ip'] ), $mac );
 			if ( !empty( $mac[0] ) and strtolower( $mac[0] ) == strtolower($tval['mac']) ) {

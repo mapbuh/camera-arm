@@ -8,6 +8,12 @@ $config = array(
 	'protocol' => 'http',
 	'address'  => '192.168.0.1',
 	'port'     => 8080,
+	# name of PTZ preset to return camera to before arming
+	# you can find predefined presets by running list-presets.php
+	'preset'   => '5',
+	
+	# number of pings to use when discovering network device
+	'ping_count' => 1,
 
 	'debug'    => true,
 	# devices which when available will trigger disarmed state
