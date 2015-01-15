@@ -100,7 +100,7 @@ function ptz_list_presets($config) {
 function check_triggers($config) {
 	$res = '';
 	foreach( $config['triggers'] as $tkey => $tval ) {
-		exec(sprintf('ping -c %d %s', $config['ping_count'], $tval['ip']), $output, $res);
+		exec(sprintf('ping -c %d %s', empty($config['ping_count']) ? 1 : $config['ping_count'], $tval['ip']), $output, $res);
 		if ( $res == 0 ) {
 			exec(sprintf('/usr/sbin/arp -an | grep %s | cut -f 4 -d " "', $tval['ip'] ), $mac );
 			if ( !empty( $mac[0] ) and strtolower( $mac[0] ) == strtolower($tval['mac']) ) {
