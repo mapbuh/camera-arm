@@ -5,6 +5,10 @@ require('config.inc.php');
 require('functions.inc.php');
 
 $motion_config = get_motion_detect_config($config);
+if ( $motion_config === false ) {
+	notify_state( $config, STATE_UNAVAILABLE );
+	exit;
+}
 $desired_state = check_triggers($config);
 if ( $motion_config->isEnable != $desired_state ) {
 	$motion_config->isEnable = $desired_state;

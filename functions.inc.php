@@ -1,5 +1,9 @@
 <?php
 
+define( 'STATE_DISARM',      0 );
+define( 'STATE_ARM',         1 );
+define( 'STATE_UNAVAILABLE', 2 );
+
 function get_motion_detect_config($config) {
 	$url = sprintf( '%s://%s:%d/cgi-bin/CGIProxy.fcgi?cmd=getMotionDetectConfig&usr=%s&pwd=%s', 
 			$config['protocol'], $config['address'], $config['port'], urlencode($config['username']), 
@@ -11,7 +15,11 @@ function get_motion_detect_config($config) {
 	$res_xml = curl_exec( $curl );
 	curl_close( $curl );
 
-	$res = new SimpleXMLElement( $res_xml );
+	try {
+		$res = new SimpleXMLElement( $res_xml );
+	} catch ( Exception $e ) {
+		return false;
+	}
 	$data = new stdClass();
 	foreach( (array)$res as $rkey => $rval ) {
 		$data->{$rkey} = $rval;
@@ -123,15 +131,21 @@ function check_triggers($config) {
 }
 
 function notify_state( $config, $state ) {
-	if ( $state == 1 ) {
+	if ( $state == STATE_ARM ) {
 		if ( $config['debug'] ) {
 			print "Camera armed\n";
 		}
 		mail( $config['email'], '[motion detection] Camera armed', 'Camera armed' );
-	} else {
+	} elseif ( $state == STATE_DISARM ) {
 		if ( $config['debug'] ) {
 			print "Camera disarmed\n";
 		}
 		mail( $config['email'], '[motion detection] Camera disarmed', 'Camera disarmed' );
+	} elseif ( $state == STATE_UNAVAILABLE ) {
+		if ( $config['debug'] ) {
+			print "Camera down\n";
+		}
+		mail( $config['email'], '[motion detection] Camera down', 'Could not connect to camera' );
+	} else {
 	}
 }
