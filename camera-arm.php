@@ -1,21 +1,23 @@
 #!/usr/bin/php
 <?php
 
-require('config.inc.php');
-require('functions.inc.php');
+define('DEBUG', true);
 
-$motion_config = get_motion_detect_config($config);
-if ( $motion_config === false ) {
-	notify_state( $config, STATE_UNAVAILABLE );
-	exit;
+spl_autoload_register(function ($class_name) {
+    include 'inc/' . $class_name . '.inc.php';
+});
+
+$config = new Config(__DIR__ . '/config.inc.php');
+$camera = new Camera($config->protocol, $config->address, $config->port, $config->username, $config->password);
+$acl	= new ACL($config->triggers, $config->lock_file, $config->lock_time, $config->email, $config->unlock_code);
+
+if ( $acl->is_locked() ) {
+	return;
 }
-$desired_state = check_triggers($config);
-if ( $motion_config->isEnable != $desired_state ) {
-	$motion_config->isEnable = $desired_state;
-	if ( $desired_state && !empty($config['preset']) ) {
-		ptz_goto_preset( $config );
-		sleep(1);
-	}
-	set_motion_detect_config($config, $motion_config);
-	notify_state($config, $desired_state );
+
+$new_state = $acl->check_triggers( $config->ping_count );
+if ( $camera->state( $new_state, $config->preset, $config->motion_config ) ) {
+	$acl->notify_state($new_state );
 }
+
+
