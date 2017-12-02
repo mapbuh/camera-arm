@@ -8,12 +8,13 @@ class ACL {
 	private $lock_time = null;
 	private $email = null;
 
-	function __construct( $triggers, $lock_file, $lock_time, $email, $unlock_code ) {
-		$this->triggers = $triggers;
-		$this->lock_time = $lock_time;
-		$this->lock_file = __DIR__ . '/../' . basename($lock_file);
-		$this->email = $email;
-		$this->unlock_code = $unlock_code;
+	function __construct( $config ) {
+		$this->triggers = $config->triggers;
+		$this->lock_time = $config->lock_time;
+		$this->lock_file = __DIR__ . '/../' . basename($config->lock_file);
+		$this->email = $config->email;
+		$this->unlock_code = $config->unlock_code;
+		$this->throttle_dir = __DIR__ . '/../' . basename($config->throttle_dir);
 	}
 
 	public function allowed( $match ) {
@@ -34,6 +35,7 @@ class ACL {
 	}
 
 	private function auth_by_code( $code ) {
+		$this->throttle();
 		if ( $code == $this->unlock_code ) {
 			return true;
 		}
@@ -78,6 +80,25 @@ class ACL {
 			}
 		}
 		return false;
+	}
+
+	public function throttle() {
+		if ( empty( $_SERVER['REMOTE_ADDR'] ) ) {
+			sleep(10);
+		}
+		$fname = rtrim($this->throttle_dir) . '/' . $_SERVER['REMOTE_ADDR'];
+		if ( file_exists( $fname ) ) {
+			$tt = file_get_contents( $fname );
+			$stat = stat( $fname );
+			if ( time() - $stat['mtime'] - $tt > 0 ) {
+				$tt = 0;
+			}
+		} else {
+			$tt = 0;
+		}
+		sleep( $tt );
+		$tt += 3;
+		file_put_contents( $fname, $tt );
 	}
 
 	public function notify_state( $state, $ip = null) {

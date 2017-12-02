@@ -31,6 +31,7 @@ $config = array(
 	# when disabling motion detection, lock state for
 	'lock_time'	=> 10 * 60,  
 	'lock_file'	=> 'lockfile',
+	'throttle_dir'	=> 'throttle',
 	'unlock_code'	=> '6969',
 	'motion_config' => (object) array(
 		'linkage'		=> 3,

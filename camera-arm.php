@@ -9,7 +9,7 @@ spl_autoload_register(function ($class_name) {
 
 $config = new Config(__DIR__ . '/config.inc.php');
 $camera = new Camera($config->protocol, $config->address, $config->port, $config->username, $config->password);
-$acl	= new ACL($config->triggers, $config->lock_file, $config->lock_time, $config->email, $config->unlock_code);
+$acl	= new ACL($config);
 
 if ( $acl->is_locked() ) {
 	return;
